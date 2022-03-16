@@ -22,40 +22,25 @@ double quad(double (*f)(double), double a, double b, int n_intervals) {
     double eps = (b - a) / n_intervals; // Interval width.
     double sum = 0;
 
-    int n_threads;
-    int id;
-    int i_start;
-    int i_end;
-
-    double partial_sum = 0.0;
-    #pragma omp parallel private(n_threads, id, i_start, i_end) firstprivate(partial_sum)
+    #pragma omp parallel
     {
-        n_threads = omp_get_num_threads();
-        id = omp_get_thread_num();
-
-        // Find iteration interval for thread.
-        i_start = id * n_intervals / n_threads;
-        i_end = (id + 1) * n_intervals / n_threads;
-
-        for (int i = i_start; i < i_end; i++) {
-            double x1 = a + eps * i;
-            double x2 = eps + x1;
-
-            partial_sum += (f(x1) + f(x2)) / 2;
+        #pragma omp for reduction(+:sum)
+        for (int i = 1; i < n_intervals-1; i++) {
+            double x = a + eps * i;
+            sum += f(x);
         }
-
-        #pragma omp atomic
-        sum += partial_sum;
     }
 
-    return (b - a)/n_intervals * sum;
+    return (b - a)/n_intervals * (sum + (f(a)+f(b))/2);
 }
 
 int main(int argc, char** argv) {
     int n = (argc == 2) ? atoi(argv[1]): 1000000;
+    int n_threads = omp_get_max_threads();
     
     double start_time = omp_get_wtime();
-    double result = quad(f, -3, 10, n);
+    double result = quad(f, 0, 100, n);
     double elapsed_time = omp_get_wtime() - start_time;
-    printf("result: %.12lf\ntime: %.6lf seconds\n", result, elapsed_time);
+
+    printf("(%d threads) result: %.12lf time: %.6lf seconds\n", n_threads, result, elapsed_time);
 }
