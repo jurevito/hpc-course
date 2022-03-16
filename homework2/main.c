@@ -40,4 +40,5 @@ int main(int argc, char** argv) {
     double elapsed_time = omp_get_wtime() - start_time;
 
     printf("result: %.12lf\ntime: %.6lf seconds\n", result, elapsed_time);
+    return 0;
 }
