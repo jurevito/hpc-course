@@ -18,4 +18,4 @@ module load GCC
 
 gcc -O2 -fopenmp -lm -Wall main.c -o main
 
-srun main 1000000000
+srun main
