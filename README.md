@@ -1,11 +1,14 @@
 # High Performance Computing
-Homework assignments and projects for High Performance Computing course.
+Homework assignments for High Performance Computing course.
+1. Basics of bash scripting and SLURM.
+2. Integration using OpenMP.
+3. Adaptive integration using OpenMP.
 
-### Format C Code
+### Code Linting
 - Download formater using `npm clang-format`.
 - Lint code: `clang-format -i -style=WebKit *.c *.h`.
 
-### Cluster Commands
+### SSH HPC Cluster commands
 - Connect to IJS cluster: `ssh js4204@nsc-login1.ijs.si`.
-- Copy file to cluster: `scp .\homework1\bbb.mp4 js4204@nsc-login1.ijs.si:./`.
-- Download file from cluster `scp js4204@nsc-login1.ijs.si:./out-bbb.mp4 .\homework1\`.
+- Copy file to cluster: `scp .\homework1\file.txt js4204@nsc-login1.ijs.si:./`.
+- Download file from cluster `scp js4204@nsc-login1.ijs.si:./file.txt .\homework1\`.
