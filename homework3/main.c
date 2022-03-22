@@ -32,16 +32,17 @@ double quad(double (*f)(double), double a, double b, double tol) {
 }
 
 double quad_parallel(double (*f)(double), double a, double b, double tol) {
-    int n_intervals = 50000;
-    double eps = (b - a) / n_intervals;
+
+    // Heuristic for splitting the interval into subintervals.
+    int n_intervals = 1000 * (((b - a)*(b - a)) / 120 + 10);
+    double h = (b - a) / n_intervals;
     double result = 0;
 
-    #pragma omp parallel for schedule(guided, 4)
+    #pragma omp parallel for schedule(guided) reduction(+:result)
     for (int i = 0; i < n_intervals; i++) {
-        double new_a = a + i * eps;
-        double new_b = new_a + eps;
+        double new_a = a + i * h;
+        double new_b = new_a + h;
 
-        #pragma omp atomic
         result += quad(f, new_a, new_b, tol);
     }
 
@@ -50,17 +51,17 @@ double quad_parallel(double (*f)(double), double a, double b, double tol) {
 
 int main(int argc, char* argv[]) {
 
-    // Serial implementation.
-    double start_time = omp_get_wtime();
-    double result = quad(f, 0, 100, TOL);
-    double elapsed_time = omp_get_wtime() - start_time;
-    printf("(serial)   result: %lf time: %.3lf\n", result, elapsed_time);
-
     // Parallel implementation.
+    double start_time = omp_get_wtime();
+    double result = quad_parallel(f, 0, 100, TOL);
+    double elapsed_time = omp_get_wtime() - start_time;
+    printf("parallel result: %.8lf time: %.3lf\n", result, elapsed_time);
+
+    // Serial implementation.
     start_time = omp_get_wtime();
-    result = quad_parallel(f, 0, 100, TOL);
+    result = quad(f, 0, 100, TOL);
     elapsed_time = omp_get_wtime() - start_time;
-    printf("(parallel) result: %lf time: %.3lf\n", result, elapsed_time);
+    printf("serial result: %.8lf time: %.3lf\n", result, elapsed_time);
 
     return 0;
 }
