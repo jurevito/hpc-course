@@ -10,5 +10,11 @@ Homework assignments for High Performance Computing course.
 
 ### SSH HPC Cluster commands
 - Connect to IJS cluster: `ssh js4204@nsc-login1.ijs.si`.
-- Copy file to cluster: `scp .\homework1\file.txt js4204@nsc-login1.ijs.si:./`.
-- Download file from cluster `scp js4204@nsc-login1.ijs.si:./file.txt .\homework1\`.
+- Copy file to cluster: `scp .\main.c js4204@nsc-login1.ijs.si:./`.
+- Download file from cluster `scp js4204@nsc-login1.ijs.si:./file.txt .\`.
+
+
+### Bash Scripting
+```bash
+cat output_{0..4..1}.txt > output.txt && rm output_{0..4..1}.txt
+```

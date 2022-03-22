@@ -17,5 +17,4 @@ export OMP_NUM_THREADS=${THREADS[$SLURM_ARRAY_TASK_ID]}
 module load GCC
 
 gcc -O2 -fopenmp -lm -Wall main.c -o main
-
 srun main
