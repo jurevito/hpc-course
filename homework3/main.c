@@ -69,7 +69,7 @@ double quad_parallel(double (*f)(double), double a, double b, double tol) {
     #pragma omp parallel for schedule(guided) reduction(+:result)
     for (int i = 0; i < n_intervals; i++) {
         double new_a = a + i * h;
-        double new_b = new_a + h;
+        double new_b = a + (i+1) * h;
 
         result += quad(f, new_a, new_b, tol);
     }
