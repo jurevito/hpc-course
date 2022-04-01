@@ -4,24 +4,14 @@
 #include <string.h>
 // Total primes less or equal to 1000: 168
 // Total primes less or equal to 10000: 1229
-
+// Total primes less or equal to 100000000: result: 5761455 time: 0.762
 int sieve_of_eratosthenes(int n) {
 
     // Initialize the array of flags for the primes.
-    unsigned char* primes = (unsigned char*)malloc((n + 1) * sizeof(unsigned char));
-    if (!primes) {
-        return 0;
-    }
-    memset(primes, 1, (n + 1));
-    /*
-    for(int i = 0 ; i<(n + 1) ; i++) {
-        printf(", %d", primes[i]);
-    }
-    printf("\n");
-    */
-    // Intialize array for the prime counts
-    unsigned int* prime_cnts = (unsigned int*)calloc(omp_get_max_threads(), sizeof(unsigned int));
-    
+    unsigned int* primes = (unsigned int*)malloc((n + 1) * sizeof(unsigned int));
+    for (int i = 0; i < n + 1; i++)
+        primes[i] = 1;
+
     // check for primes until sqrt(n)
     for (int p = 2; p * p <= n; p++) {
 
@@ -30,26 +20,21 @@ int sieve_of_eratosthenes(int n) {
             // cross out multiples of p grater than the square of p,
             // smaller have already been marked
             #pragma omp parallel for
-            for (int i = p * p; i <= n; i += p)
+            for (int i = p * p; i <= n; i += p) {
                 primes[i] = 0;
+            }
         }
     }
 
-    // find and sum up all primes
-    #pragma omp parallel for
-    for (int p = 2; p <= n; p++)
-        if (primes[p])
-            prime_cnts[omp_get_thread_num()]++;
-
-    unsigned int totalPrimes = 0;
-    for (int i = 0; i < omp_get_max_threads(); i++) {
-        totalPrimes += prime_cnts[i];
+    // Count number of primes.
+    unsigned int total_primes = 0;
+    #pragma omp parallel for reduction(+:total_primes)
+    for (int p = 2; p <= n; p++) {
+        total_primes += primes[p];
     }
 
     free(primes);
-    free(prime_cnts);
-
-    return totalPrimes;
+    return total_primes;
 }
 
 int main(int argc, char* argv[]) {
