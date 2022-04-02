@@ -4,6 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+/*
+┌─────────────────┬────────┬────────┬────────┬────────┬────────┐
+│ n. threads      │ 1      │ 4      │ 8      │ 16     │ 32     │
+├─────────────────┼────────┼────────┼────────┼────────┼────────┤
+│ execution time  │ 8.941  │ 2.270  │ 1.152  │ 0.578  │ 0.456  │
+│ speed up        │ 1.00x  │ 3.94x  │ 7.76x  │ 15.47x │ 19.61x │
+└─────────────────┴────────┴────────┴────────┴────────┴────────┘
+*/
+
 #define N_TIMES 20
 
 int sieve_of_eratosthenes(int n) {
@@ -73,7 +82,7 @@ int main(int argc, char* argv[]) {
     int total_primes = 0;
     for (int i = 0; i < N_TIMES; i++) {
         double start_time = omp_get_wtime();
-        total_primes = sieve_of_eratosthenes(N); // 50847534
+        total_primes = sieve_of_eratosthenes(N);
         average_time += omp_get_wtime() - start_time;
     }
 
