@@ -67,11 +67,10 @@ int sieve_of_eratosthenes(int n) {
     }
 
     #pragma omp parallel for reduction(+:total_primes)
-    for (int p = 2; p <= seg_size; p++) {
+    for (int p = 2; p < seg_size; p++) {
         total_primes += primes[p];
     }
-
-    printf("1.\n");
+    //printf("n. primes: %d\n", total_primes);
     
     //for (int i = 0; i < seg_size; i++)
     //    printf(", %d (%d)", primes[i], i);
@@ -79,19 +78,16 @@ int sieve_of_eratosthenes(int n) {
     #pragma omp parallel for reduction(+:total_primes)
     for(int low = seg_size ; low < n ; low+=seg_size) {
         //printf("n. primes: %d\n", total_primes);
-        int high = (low + seg_size) > n ? n : (low + seg_size);
-        // printf("%d -> %d\n", low, high);
+        int high = (low + seg_size) > n ? n+1 : (low + seg_size);
 
         unsigned char* seg_primes = (unsigned char*)malloc((high - low) * sizeof(unsigned char));
         memset(seg_primes, 1, (high - low));
 
         for(int p = 2 ; p<seg_size ; p++) {
             if(primes[p]) {
-                for(int j = 0 ; j<(high - low) ; j++) {
+                for(int j = !(low % p) ? 0 : p - low % p ; j<(high - low) ; j+=p) {
                     //printf("%d divisible by %d = %d\n", (low + j), p, (low + j) % p);
-                    if((low + j) % p == 0) {
-                        seg_primes[j] = 0;
-                    }
+                    seg_primes[j] = 0;
                 }
             }
         }
@@ -99,46 +95,24 @@ int sieve_of_eratosthenes(int n) {
         //for (int i = 0; i < (high - low); i++)
         //    printf(", %d (%d)", seg_primes[i], low + i);
         //printf("\n");
-        //printf("3.\n");
+
         for (int p = 0; p < (high - low); p++) {
             total_primes += seg_primes[p];
         }
-        //printf("4. %d %p\n", (high - low), seg_primes);
+
         //printf("(%d -> %d) n. primes: %d\n", low, high, total_primes);
-        //printf("4.\n");
         free(seg_primes);
-        //printf("5.\n");
     }
 
-    /*
-    // Initialize the array of flags for the primes.
-    unsigned int* primes = (unsigned int*)malloc((n + 1) * sizeof(unsigned int));
-    for (int i = 0; i < n + 1; i++)
-        primes[i] = 1;
-
-    // check for primes until sqrt(n)
-    for (int p = 2; p * p <= n; p++) {
-        // if flag is set then we encountered a prime number
-        if (primes[p]) {
-            // cross out multiples of p grater than the square of p,
-            // smaller have already been marked
-            #pragma omp parallel for
-            for (int i = p * p; i <= n; i += p) {
-                primes[i] = 0;
-            }
-        }
-    }
-
-    // Count number of primes.
-    unsigned int total_primes = 0;
-    #pragma omp parallel for reduction(+:total_primes)
-    for (int p = 2; p <= n; p++) {
-        total_primes += primes[p];
-    }
-
-    free(primes);
-    */
     return total_primes;
+}
+
+void test_sieve() {
+    int r1 = sieve_of_eratosthenes(503);
+    int r2 = sieve_of_eratosthenes(1000);
+    int r3 = sieve_of_eratosthenes(2000);
+
+    printf("test(%d): %d == 96 | %d == 168 | %d == 303\n", r1==96 && r2==168 && r3==303, r1, r2, r3);
 }
 
 int main(int argc, char* argv[]) {
@@ -156,5 +130,6 @@ int main(int argc, char* argv[]) {
     printf("result: %d time: %.3lf\n", total_primes, elapsed_time);
 
     simple_sieve(N);
+    //test_sieve();
     return 0;
 }
