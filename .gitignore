@@ -1,2 +1,5 @@
 *.mp4
 *.exe
+*.jpg
+.vscode
+stb_image.h
