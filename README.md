@@ -3,6 +3,8 @@ Homework assignments for High Performance Computing course.
 1. Basics of bash scripting and SLURM.
 2. Integration using OpenMP.
 3. Adaptive integration using OpenMP.
+4. Sieve of Sieve of Eratosthenes using OpenMP.
+5. RGB histogram from image using OpenCL.
 
 ### Code Linting
 - Download formater using `npm clang-format`.
