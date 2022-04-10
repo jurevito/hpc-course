@@ -5,6 +5,20 @@
 #include <string.h>
 #include <time.h>
 
+/*
+Finding histogram of an image that has 7680x4320 pixels and 3 channels.
+┌──────────┬────────┬────────┐
+│          │ cpu    │ gpu    │
+├──────────┼────────┼────────┤
+│ time     │ 0.069  │ 0.070  │
+│ speedup  │ 1.00x  │ 1.01x  │
+└──────────┴────────┴────────┘
+
+Running code on NSC:
+srun --reservation=fri gcc -O2 -fopenmp -lm -lOpenCL main.c -o main
+srun --reservation=fri --gpus=1 -n1 main img1.jpg
+*/
+
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
@@ -68,6 +82,8 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     int image_size = width * height * cpp;
     int hist_size = BINS;
 
+    double start_time = omp_get_wtime();
+
     // Divide work among the workgroups.
     size_t local_item_size = WORKGROUP_SIZE;
     size_t n_groups = ((image_size / cpp) - 1) / local_item_size + 1;
@@ -89,18 +105,17 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     cl_status |= clSetKernelArg(kernel, 5, hist_size * sizeof(unsigned int), NULL);
     cl_status |= clSetKernelArg(kernel, 6, hist_size * sizeof(unsigned int), NULL);
     cl_status |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*)&image_size);
-    cl_status |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void*)&hist_size);
-    cl_status |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void*)&cpp);
+    cl_status |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void*)&cpp);
 
     cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-    printf("5. cl_status = %d\n", cl_status);
 
     // Copy results from device back to host.
     cl_status = clEnqueueReadBuffer(cmd_queue, r_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.R, 0, NULL, NULL);
     cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.G, 0, NULL, NULL);
     cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.B, 0, NULL, NULL);
 
-    printf("6. cl_status = %d\n", cl_status);
+    double elapsed = omp_get_wtime() - start_time;
+    printf("GPU time: %.3lf results: (%d,%d,%d)\n", elapsed, hist.R[50], hist.G[50], hist.B[50]);
 
     // Close resources and free memory.
     cl_status = clFlush(cmd_queue);
@@ -149,10 +164,7 @@ int main(int argc, char** argv) {
         hist.G = (unsigned int*)calloc(BINS, sizeof(unsigned int));
         hist.B = (unsigned int*)calloc(BINS, sizeof(unsigned int));
 
-        start_time = omp_get_wtime();
         hist_gpu(image_in, hist, width, height, cpp);
-        elapsed = omp_get_wtime() - start_time;
-        printf("GPU time: %.3lf results: (%d,%d,%d)\n", elapsed, hist.R[50], hist.G[50], hist.B[50]);
 
         free(hist.R);
         free(hist.G);
