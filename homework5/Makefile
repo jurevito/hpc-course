@@ -1,8 +1,8 @@
 compile:
-	gcc -O2 -lm -fopenmp \
+	gcc -O2 -lm -fopenmp main.c \
 	-I"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\include" \
 	-L"C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.6\lib\x64" \
-	-lOpenCL -Wall main.c -o main
+	-lOpenCL -o main
 run:
 	.\main.exe img1.jpg
 format: 
