@@ -8,13 +8,10 @@
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image.h"
-//#include "stb_image_write.h"
 
 #define BINS 256
-
-#define MAX_SOURCE_SIZE	16384
-#define VEC_SIZE        134217728
-#define WORKGROUP_SIZE  256
+#define MAX_SOURCE_SIZE 16384
+#define WORKGROUP_SIZE 256
 
 typedef struct _histogram {
     unsigned int* R;
@@ -23,8 +20,6 @@ typedef struct _histogram {
 } histogram;
 
 void hist_cpu(unsigned char* image, histogram hist, int width, int height, int cpp) {
-    // Each color channel is 1 byte long, there are 4 channels RED, BLUE, GREEN and ALPHA.
-    // The order is RED|GREEN|BLUE|ALPHA for each pixel, we ignore the ALPHA channel when computing the histograms.
     for (int i = 0; i < height; i++) {
         for (int j = 0; j < width; j++) {
             hist.R[image[(i * width + j) * cpp]]++;
@@ -36,10 +31,10 @@ void hist_cpu(unsigned char* image, histogram hist, int width, int height, int c
 
 void hist_gpu(unsigned char* image, histogram hist, int width, int height, int cpp) {
 
-    // Load kernel file.
+    // Load kernel source file.
     FILE* file;
     file = fopen("kernel.cl", "r");
-    if(!file) {
+    if (!file) {
         printf("Could not load the kernel.\n");
         return;
     }
@@ -49,65 +44,63 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     source[source_size] = '\0';
     fclose(file);
 
-    // Setup of platforms and devices.
+    // Boiler plate setup of platforms, devices, context and command queue.
     cl_int cl_status;
     cl_uint n_platforms;
 
     cl_status = clGetPlatformIDs(0, NULL, &n_platforms);
-    cl_platform_id* platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id)*n_platforms);
+    cl_platform_id* platforms = (cl_platform_id*)malloc(sizeof(cl_platform_id) * n_platforms);
     cl_status = clGetPlatformIDs(n_platforms, platforms, NULL);
 
     cl_uint n_devices;
     cl_status = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL, &n_devices);
     n_devices = 1;
 
-    cl_device_id* devices = (cl_device_id*)malloc(sizeof(cl_device_id)*n_devices);
+    cl_device_id* devices = (cl_device_id*)malloc(sizeof(cl_device_id) * n_devices);
     cl_status = clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, n_devices, devices, NULL);
 
     cl_context context = clCreateContext(NULL, n_devices, devices, NULL, NULL, &cl_status);
     cl_command_queue cmd_queue = clCreateCommandQueue(context, devices[0], 0, &cl_status);
 
-    cl_program program = clCreateProgramWithSource(context,	1, (const char**)&source, NULL, &cl_status);
+    cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, NULL, &cl_status);
     cl_status = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
-    printf("1. cl_status = %d\n", cl_status);
-    // ======================================================
+
+    int image_size = width * height * cpp;
+    int hist_size = BINS;
+
     // Divide work among the workgroups.
-
-    int image_size = width*height*cpp;
     size_t local_item_size = WORKGROUP_SIZE;
-	size_t n_groups = ((image_size/cpp) - 1)/local_item_size + 1;
-    size_t global_item_size = n_groups*local_item_size;
-    printf("2. cl_status = %d\n", cl_status);
+    size_t n_groups = ((image_size / cpp) - 1) / local_item_size + 1;
+    size_t global_item_size = n_groups * local_item_size;
 
-    cl_mem image_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, image_size*sizeof(unsigned char), image, &cl_status);
-    cl_mem r_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS*sizeof(unsigned int), hist.R, &cl_status);
-    cl_mem g_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS*sizeof(unsigned int), hist.G, &cl_status);
-    cl_mem b_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS*sizeof(unsigned int), hist.B, &cl_status);
-    printf("3. cl_status = %d\n", cl_status);
+    // Allocate memory on device.
+    cl_mem image_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, image_size * sizeof(unsigned char), image, &cl_status);
+    cl_mem r_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, hist_size * sizeof(unsigned int), hist.R, &cl_status);
+    cl_mem g_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, hist_size * sizeof(unsigned int), hist.G, &cl_status);
+    cl_mem b_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, hist_size * sizeof(unsigned int), hist.B, &cl_status);
 
+    // Create kernel and add arguments.
     cl_kernel kernel = clCreateKernel(program, "rgb", &cl_status);
-    cl_status  = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*) &image_device);
-    cl_status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*) &r_device);
-    cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*) &g_device);
-    cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*) &b_device);
-    cl_status |= clSetKernelArg(kernel, 4, BINS*sizeof(unsigned int), NULL);
-    cl_status |= clSetKernelArg(kernel, 5, BINS*sizeof(unsigned int), NULL);
-    cl_status |= clSetKernelArg(kernel, 6, BINS*sizeof(unsigned int), NULL);
-	cl_status |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*) &image_size);
-    cl_status |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void*) &cpp);
-    printf("4. cl_status = %d\n", cl_status);
+    cl_status = clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&image_device);
+    cl_status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&r_device);
+    cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&g_device);
+    cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&b_device);
+    cl_status |= clSetKernelArg(kernel, 4, hist_size * sizeof(unsigned int), NULL);
+    cl_status |= clSetKernelArg(kernel, 5, hist_size * sizeof(unsigned int), NULL);
+    cl_status |= clSetKernelArg(kernel, 6, hist_size * sizeof(unsigned int), NULL);
+    cl_status |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*)&image_size);
+    cl_status |= clSetKernelArg(kernel, 8, sizeof(cl_int), (void*)&hist_size);
+    cl_status |= clSetKernelArg(kernel, 9, sizeof(cl_int), (void*)&cpp);
 
     cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
     printf("5. cl_status = %d\n", cl_status);
 
-    printf("before hist.G[50] = %d\n", hist.G[50]);
-    cl_status = clEnqueueReadBuffer(cmd_queue, r_device, CL_TRUE, 0, BINS*sizeof(unsigned int), hist.R, 0, NULL, NULL);
-    cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, BINS*sizeof(unsigned int), hist.G, 0, NULL, NULL);
-    cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, BINS*sizeof(unsigned int), hist.B, 0, NULL, NULL);
-    printf("after hist.G[50] = %d\n", hist.G[50]);
+    // Copy results from device back to host.
+    cl_status = clEnqueueReadBuffer(cmd_queue, r_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.R, 0, NULL, NULL);
+    cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.G, 0, NULL, NULL);
+    cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.B, 0, NULL, NULL);
 
     printf("6. cl_status = %d\n", cl_status);
-    // ======================================================
 
     // Close resources and free memory.
     cl_status = clFlush(cmd_queue);
@@ -120,21 +113,9 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     cl_status = clReleaseCommandQueue(cmd_queue);
     cl_status = clReleaseContext(context);
 
-	free(devices);
+    free(devices);
     free(platforms);
     free(source);
-}
-
-void print_hist(histogram H) {
-    printf("Colour\tNo. Pixels\n");
-    for (int i = 0; i < BINS; i++) {
-        if (H.R[i] > 0)
-            printf("%dR\t%d\n", i, H.R[i]);
-        if (H.G[i] > 0)
-            printf("%dG\t%d\n", i, H.G[i]);
-        if (H.B[i] > 0)
-            printf("%dB\t%d\n", i, H.B[i]);
-    }
 }
 
 int main(int argc, char** argv) {
