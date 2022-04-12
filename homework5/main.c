@@ -11,17 +11,13 @@ Finding histogram of an image that has 7680x4320 pixels and 3 channels.
 │          │ cpu    │ gpu    │
 ├──────────┼────────┼────────┤
 │ time     │ 0.069  │ 0.070  │
-│ speedup  │ 1.00x  │ 1.01x  │
+│ speedup  │ 1.00x  │ 0.99x  │
 └──────────┴────────┴────────┘
 
 Running code on NSC:
 srun --reservation=fri gcc -O2 -fopenmp -lm -lOpenCL main.c -o main
 srun --reservation=fri --gpus=1 -n1 main img1.jpg
 */
-
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image.h"
 
 #define BINS 256
 #define MAX_SOURCE_SIZE 16384
