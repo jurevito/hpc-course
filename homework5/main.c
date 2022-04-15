@@ -118,6 +118,7 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     cl_status = clFinish(cmd_queue);
     cl_status = clReleaseKernel(kernel);
     cl_status = clReleaseProgram(program);
+    cl_status = clReleaseMemObject(image_device);
     cl_status = clReleaseMemObject(r_device);
     cl_status = clReleaseMemObject(g_device);
     cl_status = clReleaseMemObject(b_device);
