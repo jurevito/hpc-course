@@ -34,9 +34,6 @@ __kernel void hist(__global const unsigned char* image,
 __kernel void cum_dist(__global unsigned int* r,
                        __global unsigned int* g,
                        __global unsigned int* b,
-                       __global unsigned int* r_dist,
-                       __global unsigned int* g_dist,
-                       __global unsigned int* b_dist,
                        const int size) {
     
     int gid = get_global_id(0);
@@ -46,9 +43,9 @@ __kernel void cum_dist(__global unsigned int* r,
         int index = (i-1)+(lid*i);
 
         if(index < 256) {
-            r_dist[index] = r_dist[index] + r_dist[index - (i/2)];
-            g_dist[index] = g_dist[index] + g_dist[index - (i/2)];
-            b_dist[index] = b_dist[index] + b_dist[index - (i/2)];
+            r[index] = r[index] + r[index - (i/2)];
+            g[index] = g[index] + g[index - (i/2)];
+            b[index] = b[index] + b[index - (i/2)];
         }
         
         barrier(CLK_LOCAL_MEM_FENCE);
@@ -58,17 +55,17 @@ __kernel void cum_dist(__global unsigned int* r,
         int index = (i-1)+(lid*i);
 
         if(index + (i/2) < 256) {
-            r_dist[index + (i/2)] = r_dist[index + (i/2)] + r_dist[index];
-            g_dist[index + (i/2)] = g_dist[index + (i/2)] + g_dist[index];
-            b_dist[index + (i/2)] = b_dist[index + (i/2)] + b_dist[index];
+            r[index + (i/2)] = r[index + (i/2)] + r[index];
+            g[index + (i/2)] = g[index + (i/2)] + g[index];
+            b[index + (i/2)] = b[index + (i/2)] + b[index];
         }
 
         barrier(CLK_LOCAL_MEM_FENCE);
     }
 
-    r[lid] = (unsigned int)round((float)(r_dist[lid] - r_dist[0]) / (float)(size - r_dist[0]) * (256 - 1));
-    g[lid] = (unsigned int)round((float)(g_dist[lid] - g_dist[0]) / (float)(size - g_dist[0]) * (256 - 1));
-    b[lid] = (unsigned int)round((float)(b_dist[lid] - b_dist[0]) / (float)(size - b_dist[0]) * (256 - 1));
+    r[lid] = (unsigned int)round((float)(r[lid] - r[0]) / (float)(size - r[0]) * (256 - 1));
+    g[lid] = (unsigned int)round((float)(g[lid] - g[0]) / (float)(size - g[0]) * (256 - 1));
+    b[lid] = (unsigned int)round((float)(b[lid] - b[0]) / (float)(size - b[0]) * (256 - 1));
 }
 
 __kernel void transform(__global unsigned char* image,

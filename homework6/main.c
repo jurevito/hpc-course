@@ -15,8 +15,6 @@
 #include "stb_image_write.h"
 
 #define BINS 256
-#define MAX_SOURCE_SIZE 16384
-#define WORKGROUP_SIZE 256
 
 int hist_equal_cpu(unsigned char* image, int width, int height, int cpp) {
 
@@ -88,7 +86,7 @@ int main(int argc, char** argv) {
     unsigned char* image = stbi_load(img_file, &width, &height, &cpp, 0);
 
     double start_time = omp_get_wtime();
-    hist_equal_gpu(image, width, height, cpp);
+    hist_equal_cpu(image, width, height, cpp);
     double elapsed = omp_get_wtime() - start_time;
     printf("Time: %.3lf\n", elapsed);
 

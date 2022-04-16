@@ -79,16 +79,6 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
 
-    // Copy results from device back to host.
-    cl_status = clEnqueueReadBuffer(cmd_queue, r_device, CL_TRUE, 0, BINS * sizeof(unsigned int), hist.R, 0, NULL, NULL);
-    cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, BINS * sizeof(unsigned int), hist.G, 0, NULL, NULL);
-    cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, BINS * sizeof(unsigned int), hist.B, 0, NULL, NULL);
-
-    // Allocate memory on device for cumulative distribution.
-    cl_mem r_dist_device = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.R, &cl_status);
-    cl_mem g_dist_device = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.G, &cl_status);
-    cl_mem b_dist_device = clCreateBuffer(context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.B, &cl_status);
-
     // Divide work among the workgroups.
     local_item_size = WORKGROUP_SIZE;
     n_groups = (BINS - 1) / local_item_size + 1;
@@ -99,10 +89,7 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
     cl_status |= clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&r_device);
     cl_status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&g_device);
     cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&b_device);
-    cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&r_dist_device);
-    cl_status |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&g_dist_device);
-    cl_status |= clSetKernelArg(kernel, 5, sizeof(cl_mem), (void*)&b_dist_device);
-    cl_status |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void*)&image_size);
+    cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_int), (void*)&image_size);
 
     cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
 
@@ -134,9 +121,6 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
     cl_status = clReleaseMemObject(r_device);
     cl_status = clReleaseMemObject(g_device);
     cl_status = clReleaseMemObject(b_device);
-    cl_status = clReleaseMemObject(r_dist_device);
-    cl_status = clReleaseMemObject(g_dist_device);
-    cl_status = clReleaseMemObject(b_dist_device);
     cl_status = clReleaseCommandQueue(cmd_queue);
     cl_status = clReleaseContext(context);
 
@@ -150,10 +134,3 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     return 0;
 }
-
-/*
-hist: 62729 44799 64366 44478
-cum_dist: 62729 107528 171894 216372
-values: 0 0 1 1
-image: 83 22 41 80
-*/
