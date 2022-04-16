@@ -60,8 +60,6 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     int image_size = width * height * cpp;
     int hist_size = BINS;
 
-    double start_time = omp_get_wtime();
-
     // Divide work among the workgroups.
     size_t local_item_size = WORKGROUP_SIZE;
     size_t n_groups = ((image_size / cpp) - 1) / local_item_size + 1;
@@ -92,14 +90,12 @@ void hist_gpu(unsigned char* image, histogram hist, int width, int height, int c
     cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.G, 0, NULL, NULL);
     cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, hist_size * sizeof(unsigned int), hist.B, 0, NULL, NULL);
 
-    double elapsed = omp_get_wtime() - start_time;
-    printf("GPU time: %.3lf results: (%d,%d,%d)\n", elapsed, hist.R[50], hist.G[50], hist.B[50]);
-
     // Close resources and free memory.
     cl_status = clFlush(cmd_queue);
     cl_status = clFinish(cmd_queue);
     cl_status = clReleaseKernel(kernel);
     cl_status = clReleaseProgram(program);
+    cl_status = clReleaseMemObject(image_device);
     cl_status = clReleaseMemObject(r_device);
     cl_status = clReleaseMemObject(g_device);
     cl_status = clReleaseMemObject(b_device);
