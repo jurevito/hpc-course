@@ -16,15 +16,16 @@
 
 #define BINS 256
 #define MAX_SOURCE_SIZE 16384
+#define WORKGROUP_SIZE 256
 
-void cumulative_dist_gpu(histogram cum_dist, histogram hist) {
+int cumulative_dist_gpu(histogram cum_dist, histogram hist) {
 
     // Load kernel source file.
     FILE* file;
-    file = fopen("hist_kernel.cl", "r");
+    file = fopen("scan_kernel.cl", "r");
     if (!file) {
         printf("Could not load the kernel.\n");
-        return;
+        return 1;
     }
 
     char* source = (char*)malloc(MAX_SOURCE_SIZE);
@@ -53,31 +54,48 @@ void cumulative_dist_gpu(histogram cum_dist, histogram hist) {
     cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, NULL, &cl_status);
     cl_status = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
 
-    size_t log_size;
-	char* log;
-	cl_status = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-    if (log_size > 2) {
-        log =(char *)malloc(sizeof(char)*(log_size+1));
-        cl_status = clGetProgramBuildInfo(program, devices[0], CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-        printf("%s", log);
-
-        free(log);
-        return 1;
-    }
-
     // Divide work among the workgroups.
+    size_t local_item_size = WORKGROUP_SIZE;
+    size_t n_groups = (BINS - 1) / local_item_size + 1;
+    size_t global_item_size = n_groups * local_item_size;
 
     // Allocate memory on device.
+    cl_mem r_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.R, &cl_status);
+    cl_mem g_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.G, &cl_status);
+    cl_mem b_device = clCreateBuffer(context, CL_MEM_WRITE_ONLY | CL_MEM_COPY_HOST_PTR, BINS * sizeof(unsigned int), hist.B, &cl_status);
 
     // Create kernel and add arguments.
+    cl_kernel kernel = clCreateKernel(program, "cum_dist", &cl_status);
+    cl_status |= clSetKernelArg(kernel, 0, sizeof(cl_mem), (void*)&r_device);
+    cl_status |= clSetKernelArg(kernel, 1, sizeof(cl_mem), (void*)&g_device);
+    cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&b_device);
+
+    cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
 
     // Copy results from device back to host.
+    cl_status = clEnqueueReadBuffer(cmd_queue, r_device, CL_TRUE, 0, BINS * sizeof(unsigned int), cum_dist.R, 0, NULL, NULL);
+    cl_status = clEnqueueReadBuffer(cmd_queue, g_device, CL_TRUE, 0, BINS * sizeof(unsigned int), cum_dist.G, 0, NULL, NULL);
+    cl_status = clEnqueueReadBuffer(cmd_queue, b_device, CL_TRUE, 0, BINS * sizeof(unsigned int), cum_dist.B, 0, NULL, NULL);
 
     // Close resources and free memory.
+    cl_status = clFlush(cmd_queue);
+    cl_status = clFinish(cmd_queue);
+    cl_status = clReleaseKernel(kernel);
+    cl_status = clReleaseProgram(program);
+    cl_status = clReleaseMemObject(r_device);
+    cl_status = clReleaseMemObject(g_device);
+    cl_status = clReleaseMemObject(b_device);
+    cl_status = clReleaseCommandQueue(cmd_queue);
+    cl_status = clReleaseContext(context);
 
+    free(devices);
+    free(platforms);
+    free(source);
+
+    return 0;
 }
 
-void hist_equal_cpu(unsigned char* image, int width, int height, int cpp) {
+int hist_equal_cpu(unsigned char* image, int width, int height, int cpp) {
 
     // Create the histogram of the input image.
     histogram hist;
@@ -124,9 +142,11 @@ void hist_equal_cpu(unsigned char* image, int width, int height, int cpp) {
     free(cum_dist.R);
     free(cum_dist.G);
     free(cum_dist.B);
+
+    return 0;
 }
 
-void hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
+int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     // Create the histogram of the input image.
     histogram hist;
@@ -147,6 +167,9 @@ void hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
     // Calculate new color level values.
 
     // Assign the new transformed value to each color channel of a pixel.
+
+
+    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -162,7 +185,7 @@ int main(int argc, char** argv) {
     unsigned char* image = stbi_load(img_file, &width, &height, &cpp, 0);
 
     double start_time = omp_get_wtime();
-    hist_equal_cpu(image, width, height, cpp);
+    hist_equal_gpu(image, width, height, cpp);
     double elapsed = omp_get_wtime() - start_time;
     printf("CPU time: %.3lf\n", elapsed);
 
