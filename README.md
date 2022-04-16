@@ -5,6 +5,8 @@ Homework assignments for High Performance Computing course.
 3. Adaptive integration using OpenMP.
 4. Sieve of Sieve of Eratosthenes using OpenMP.
 5. RGB histogram from image using OpenCL.
+6. Histogram equalization using OpenCL.
+7. Matrix and vector multiplication using OpenCL.
 
 ### Code Linting
 - Download formater using `npm clang-format`.
