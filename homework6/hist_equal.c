@@ -63,7 +63,7 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     // Divide work among the workgroups.
     size_t local_item_size = WORKGROUP_SIZE;
-    size_t n_groups = ((image_size) - 1) / local_item_size + 1;
+    size_t n_groups = ((image_size)-1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
 
     // Create kernel for finding histogram of the image.
@@ -96,7 +96,7 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     // Divide work among the workgroups.
     local_item_size = WORKGROUP_SIZE;
-    n_groups = ((image_size) - 1) / local_item_size + 1;
+    n_groups = ((image_size)-1) / local_item_size + 1;
     global_item_size = n_groups * local_item_size;
 
     // Create kernel for transforming the image.
