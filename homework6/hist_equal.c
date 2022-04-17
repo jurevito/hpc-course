@@ -47,6 +47,7 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
     cl_program program = clCreateProgramWithSource(context, 1, (const char**)&source, NULL, &cl_status);
     cl_status = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
 
+    double start_time = omp_get_wtime();
     int image_size = width * height;
 
     histogram hist;
@@ -81,7 +82,7 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     // Divide work among the workgroups.
     local_item_size = WORKGROUP_SIZE;
-    n_groups = (BINS - 1) / local_item_size + 1;
+    n_groups = 1;
     global_item_size = n_groups * local_item_size;
 
     // Create kernel for calculating cumulative distribution and new values.
@@ -111,6 +112,9 @@ int hist_equal_gpu(unsigned char* image, int width, int height, int cpp) {
 
     // Copy results from device back to host.
     cl_status = clEnqueueReadBuffer(cmd_queue, image_device, CL_TRUE, 0, image_size * cpp * sizeof(unsigned char), image, 0, NULL, NULL);
+
+    double elapsed = omp_get_wtime() - start_time;
+    printf("GPU time: %.3lf\n", elapsed);
 
     // Close resources and free memory.
     cl_status = clFlush(cmd_queue);

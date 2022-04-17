@@ -88,7 +88,9 @@ int main(int argc, char** argv) {
     double start_time = omp_get_wtime();
     hist_equal_cpu(image, width, height, cpp);
     double elapsed = omp_get_wtime() - start_time;
-    printf("Time: %.3lf\n", elapsed);
+    printf("CPU time: %.3lf\n", elapsed);
+
+    hist_equal_gpu(image, width, height, cpp);
 
     // Save image after histogram equalization.
     char* output_name = malloc(4 + strlen(img_file) + 1);
