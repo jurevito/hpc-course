@@ -14,6 +14,15 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "stb_image_write.h"
 
+/*
+┌──────────┬────────┬────────┐
+│          │ cpu    │ gpu    │
+├──────────┼────────┼────────┤
+│ time     │ 0.115  │ 0.085  │
+│ speedup  │ 1.00x  │ 1.35x  │
+└──────────┴────────┴────────┘
+*/
+
 #define BINS 256
 
 int hist_equal_cpu(unsigned char* image, int width, int height, int cpp) {
