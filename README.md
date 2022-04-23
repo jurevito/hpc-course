@@ -3,8 +3,8 @@ Homework assignments for High Performance Computing course.
 1. Basics of bash scripting and SLURM.
 2. Integration using OpenMP.
 3. Adaptive integration using OpenMP.
-4. Sieve of Sieve of Eratosthenes using OpenMP.
-5. RGB histogram from image using OpenCL.
+4. Sieve of Eratosthenes using OpenMP.
+5. Image histogram using OpenCL.
 6. Histogram equalization using OpenCL.
 7. Matrix and vector multiplication using OpenCL.
 
