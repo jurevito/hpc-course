@@ -3,44 +3,44 @@
 
 #include <stdio.h>
 
-struct mtx_COO  // COOrdinates
+struct mtx_COO // COOrdinates
 {
-    int *row;
-    int *col;
-    float *data;
+    int* row;
+    int* col;
+    float* data;
     int num_rows;
     int num_cols;
     int num_nonzeros;
 };
 
-struct mtx_CSR  // Compressed Sparse Row
+struct mtx_CSR // Compressed Sparse Row
 {
-    int *rowptr;
-    int *col;
-    float *data;
+    int* rowptr;
+    int* col;
+    float* data;
     int num_rows;
     int num_cols;
     int num_nonzeros;
 };
 
-struct mtx_ELL      // ELLiptic (developed by authors of ellipctic package)
+struct mtx_ELL // ELLiptic (developed by authors of ellipctic package)
 {
-    int *col;
-    float *data;
+    int* col;
+    float* data;
     int num_rows;
     int num_cols;
     int num_nonzeros;
     int num_elements;
-    int num_elementsinrow;    
+    int num_elementsinrow;
 };
 
-int mtx_COO_create_from_file(struct mtx_COO *mCOO, FILE *f);
-int mtx_COO_free(struct mtx_COO *mCOO);
+int mtx_COO_create_from_file(struct mtx_COO* mCOO, FILE* f);
+int mtx_COO_free(struct mtx_COO* mCOO);
 
-int mtx_CSR_create_from_mtx_COO(struct mtx_CSR *mCSR, struct mtx_COO *mCOO);
-int mtx_CSR_free(struct mtx_CSR *mCSR);
+int mtx_CSR_create_from_mtx_COO(struct mtx_CSR* mCSR, struct mtx_COO* mCOO);
+int mtx_CSR_free(struct mtx_CSR* mCSR);
 
-int mtx_ELL_create_from_mtx_CSR(struct mtx_ELL *mELL, struct mtx_CSR *mCSR);
-int mtx_ELL_free(struct mtx_ELL *mELL);
+int mtx_ELL_create_from_mtx_CSR(struct mtx_ELL* mELL, struct mtx_CSR* mCSR);
+int mtx_ELL_free(struct mtx_ELL* mELL);
 
 #endif

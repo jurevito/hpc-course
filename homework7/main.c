@@ -9,7 +9,7 @@
 #include "mtx_sparse.h"
 
 #define MAX_SOURCE_SIZE 16384
-#define WORKGROUP_SIZE 256
+#define WORKGROUP_SIZE 1024
 #define REPEAT 1
 
 int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output) {
@@ -49,16 +49,16 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_status = clBuildProgram(program, 1, devices, NULL, NULL, NULL);
 
     // Allocate memory on device.
-    cl_mem row_ptr_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, (csr_matrix.num_rows+1) * sizeof(int), csr_matrix.rowptr, &cl_status);
-    cl_mem col_device     = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, csr_matrix.num_nonzeros * sizeof(int), csr_matrix.col, &cl_status);
-    cl_mem data_device    = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, csr_matrix.num_nonzeros * sizeof(float), csr_matrix.data, &cl_status);
+    cl_mem row_ptr_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, (csr_matrix.num_rows + 1) * sizeof(int), csr_matrix.rowptr, &cl_status);
+    cl_mem col_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, csr_matrix.num_nonzeros * sizeof(int), csr_matrix.col, &cl_status);
+    cl_mem data_device = clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, csr_matrix.num_nonzeros * sizeof(float), csr_matrix.data, &cl_status);
 
     cl_mem vector_device = clCreateBuffer(context, CL_MEM_READ_ONLY, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
-    cl_mem output_device = clCreateBuffer(context, CL_MEM_READ_ONLY, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
+    cl_mem output_device = clCreateBuffer(context, CL_MEM_READ_WRITE, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
 
     // Divide work among the workgroups.
     size_t local_item_size = WORKGROUP_SIZE;
-	int n_groups = (csr_matrix.num_rows - 1) / local_item_size + 1;
+    int n_groups = (csr_matrix.num_rows - 1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
 
     // Create kernel and add arguments.
@@ -72,9 +72,9 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
 
     double elapsed_time = omp_get_wtime();
     for (int i = 0; i < REPEAT; i++) {
-        cl_status = clEnqueueWriteBuffer(cmd_queue, vector_device, CL_TRUE, 0,	csr_matrix.num_cols*sizeof(cl_float), vector, 0, NULL, NULL);
+        cl_status = clEnqueueWriteBuffer(cmd_queue, vector_device, CL_TRUE, 0, csr_matrix.num_cols * sizeof(cl_float), vector, 0, NULL, NULL);
         cl_status = clEnqueueNDRangeKernel(cmd_queue, kernel, 1, NULL, &global_item_size, &local_item_size, 0, NULL, NULL);
-        cl_status = clEnqueueReadBuffer(cmd_queue, output_device, CL_TRUE, 0, csr_matrix.num_rows*sizeof(cl_float), output, 0, NULL, NULL);
+        cl_status = clEnqueueReadBuffer(cmd_queue, output_device, CL_TRUE, 0, csr_matrix.num_rows * sizeof(cl_float), output, 0, NULL, NULL);
     }
     elapsed_time = omp_get_wtime() - elapsed_time;
 
@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     }
 
     FILE* file = fopen(argv[1], "r");
-    if(file == NULL) {
+    if (file == NULL) {
         fprintf(stderr, "Cannot open matrix file.\n");
         exit(1);
     }
@@ -124,29 +124,29 @@ int main(int argc, char** argv) {
     mtx_COO_free(&coo_matrix);
 
     // Instantiate vector.
-    float* vector = (float*) malloc(csr_matrix.num_cols*sizeof(float));
+    float* vector = (float*)malloc(csr_matrix.num_cols * sizeof(float));
     for (int i = 0; i < csr_matrix.num_cols; i++) {
         vector[i] = 1.0;
     }
 
-    float* output = (float*) malloc(csr_matrix.num_rows*sizeof(float));
+    float* output = (float*)malloc(csr_matrix.num_rows * sizeof(float));
     matrix_vector_multi(csr_matrix, vector, output);
 
     // Check the results using sequential implementation.
-    float* compare_output = (float*) malloc(csr_matrix.num_rows*sizeof(float));
-    for (int i = 0 ; i < csr_matrix.num_rows; i++){
+    float* compare_output = (float*)malloc(csr_matrix.num_rows * sizeof(float));
+    for (int i = 0; i < csr_matrix.num_rows; i++) {
         compare_output[i] = 0.0;
     }
-            
+
     for (int i = 0; i < csr_matrix.num_rows; i++) {
         for (int j = csr_matrix.rowptr[i]; j < csr_matrix.rowptr[i + 1]; j++) {
             compare_output[i] += csr_matrix.data[j] * vector[csr_matrix.col[j]];
         }
     }
-        
+
     int n_errors = 0;
-    for(int i = 0; i < csr_matrix.num_rows; i++) {
-        if (fabs(output[i] - compare_output[i]) > 1e-4 ) {
+    for (int i = 0; i < csr_matrix.num_rows; i++) {
+        if (fabs(output[i] - compare_output[i]) > 1e-4) {
             n_errors++;
         }
     }
