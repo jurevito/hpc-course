@@ -1,6 +1,9 @@
 *.mp4
 *.exe
 *.jpg
+*.mtx
 .vscode
 stb_image.h
 stb_image_write.h
+SpMV_cl.c
+SpMV_cl.cl
