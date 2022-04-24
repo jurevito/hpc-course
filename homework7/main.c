@@ -13,10 +13,69 @@ size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
 Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
 Times: 0.847000(COO_seq), 0.442000(CSR_seq), 6.826000(ELL_seq)
 Times: 0.075000(CSR_cl), 0.115000(ELL_cl)
+
+size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
+Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
+Times: 0.847000(COO_seq), 0.442000(CSR_seq), 6.826000(ELL_seq)
+Times: 0.075000(CSR_cl), 0.115000(ELL_cl)
+       0.063000
+
+srun --reservation=fri gcc -O2 -fopenmp -lm -lOpenCL main.c mtx_sparse.c -o main
+
+
+time: 0.098734 repetitions: 100
+Number of errors: 144846
+
+size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
+Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
+Times: 1.389209(COO_seq), 0.649234(CSR_seq), 6.710061(ELL_seq)
+Times: 0.358190(CSR_cl), 0.325047(ELL_cl)
+
+threads_per_row = 8 work_group_size = 64  
+time: 0.161013 repetitions: 100
+threads_per_row = 8 work_group_size = 128 
+time: 0.138741 repetitions: 100
+threads_per_row = 8 work_group_size = 256 
+time: 0.139434 repetitions: 100
+threads_per_row = 8 work_group_size = 512 
+time: 0.141819 repetitions: 100
+threads_per_row = 8 work_group_size = 1024
+time: 0.148168 repetitions: 100
+threads_per_row = 16 work_group_size = 64 
+time: 0.193024 repetitions: 100
+threads_per_row = 16 work_group_size = 128
+time: 0.149216 repetitions: 100
+threads_per_row = 16 work_group_size = 256
+time: 0.147403 repetitions: 100
+threads_per_row = 16 work_group_size = 512
+time: 0.163763 repetitions: 100
+threads_per_row = 16 work_group_size = 1024
+time: 0.170920 repetitions: 100
+threads_per_row = 32 work_group_size = 64
+time: 0.282587 repetitions: 100
+threads_per_row = 32 work_group_size = 128
+time: 0.170251 repetitions: 100
+threads_per_row = 32 work_group_size = 256
+time: 0.174907 repetitions: 100
+threads_per_row = 32 work_group_size = 512
+time: 0.184007 repetitions: 100
+threads_per_row = 32 work_group_size = 1024
+time: 0.201341 repetitions: 100
+threads_per_row = 64 work_group_size = 64
+time: 0.453125 repetitions: 100
+threads_per_row = 64 work_group_size = 128
+time: 0.292062 repetitions: 100
+threads_per_row = 64 work_group_size = 256
+time: 0.301526 repetitions: 100
+threads_per_row = 64 work_group_size = 512
+time: 0.318690 repetitions: 100
+threads_per_row = 64 work_group_size = 1024
+time: 0.358805 repetitions: 100
+Number of errors: 147342
 */
 
 #define MAX_SOURCE_SIZE 16384
-#define WORKGROUP_SIZE 256
+#define WORKGROUP_SIZE 128
 #define REPEAT 100
 
 int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output) {
@@ -64,25 +123,10 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_mem output_device = clCreateBuffer(context, CL_MEM_READ_WRITE, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
 
     // Divide work among the workgroups.
-    int threads_per_row = 16;
+    int threads_per_row = 8;
     size_t local_item_size = WORKGROUP_SIZE;
     int n_groups = (csr_matrix.num_rows*threads_per_row - 1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
-
-    /*
-    20000x30000 * 30000 = 20000
-    size_t local_item_size = 1024;
-    int n_groups = (20.000 - 1) / 1024 + 1 = 20;
-    size_t global_item_size = 20 * 1024 = 20480;
-    */
-
-    /*
-    20000x30000 * 30000 = 20000
-    int n_threads_per_row = 64
-    size_t local_item_size = 1024;
-    int n_groups = (20.000*64 - 1) / 1024 + 1 = 1250;
-    size_t global_item_size = 1250 * 1024 = 1280000;
-    */
 
     // Create kernel and add arguments.
     cl_kernel kernel = clCreateKernel(program, "matrix_vector_multi", &cl_status);
@@ -172,9 +216,6 @@ int main(int argc, char** argv) {
     int n_errors = 0;
     for (int i = 0; i < csr_matrix.num_rows; i++) {
         if (fabs(output[i] - compare_output[i]) > 1e-4) {
-            if(n_errors < 10 && fabs(output[i] - compare_output[i]) > 0.07f) {
-                printf("error at index = %d out of %d, %.3f\n", i, csr_matrix.num_nonzeros, fabs(output[i] - compare_output[i]));
-            }
             n_errors++;
         }
     }
