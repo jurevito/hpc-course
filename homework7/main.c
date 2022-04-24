@@ -9,8 +9,8 @@
 #include "mtx_sparse.h"
 
 #define MAX_SOURCE_SIZE 16384
-#define WORKGROUP_SIZE 1024
-#define REPEAT 1
+#define WORKGROUP_SIZE 256
+#define REPEAT 100
 
 int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output) {
 
@@ -57,9 +57,25 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_mem output_device = clCreateBuffer(context, CL_MEM_READ_WRITE, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
 
     // Divide work among the workgroups.
+    int threads_per_row = 64;
     size_t local_item_size = WORKGROUP_SIZE;
-    int n_groups = (csr_matrix.num_rows - 1) / local_item_size + 1;
+    int n_groups = (csr_matrix.num_rows*threads_per_row - 1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
+
+    /*
+    20000x30000 * 30000 = 20000
+    size_t local_item_size = 1024;
+    int n_groups = (20.000 - 1) / 1024 + 1 = 20;
+    size_t global_item_size = 20 * 1024 = 20480;
+    */
+
+    /*
+    20000x30000 * 30000 = 20000
+    int n_threads_per_row = 64
+    size_t local_item_size = 1024;
+    int n_groups = (20.000*64 - 1) / 1024 + 1 = 1250;
+    size_t global_item_size = 1250 * 1024 = 1280000;
+    */
 
     // Create kernel and add arguments.
     cl_kernel kernel = clCreateKernel(program, "matrix_vector_multi", &cl_status);
@@ -68,7 +84,9 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&data_device);
     cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&vector_device);
     cl_status |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&output_device);
-    cl_status |= clSetKernelArg(kernel, 5, sizeof(cl_int), (void*)&(csr_matrix.num_rows));
+    cl_status |= clSetKernelArg(kernel, 5, local_item_size*sizeof(float), NULL);
+    cl_status |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void*)&(csr_matrix.num_rows));
+    cl_status |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*)&threads_per_row);
 
     double elapsed_time = omp_get_wtime();
     for (int i = 0; i < REPEAT; i++) {
@@ -147,6 +165,7 @@ int main(int argc, char** argv) {
     int n_errors = 0;
     for (int i = 0; i < csr_matrix.num_rows; i++) {
         if (fabs(output[i] - compare_output[i]) > 1e-4) {
+            printf("error at index = %d out of %d, %.3f\n", i, csr_matrix.num_nonzeros, fabs(output[i] - compare_output[i]));
             n_errors++;
         }
     }
