@@ -9,69 +9,16 @@
 #include "mtx_sparse.h"
 
 /*
-size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
-Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
-Times: 0.847000(COO_seq), 0.442000(CSR_seq), 6.826000(ELL_seq)
-Times: 0.075000(CSR_cl), 0.115000(ELL_cl)
-
-size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
-Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
-Times: 0.847000(COO_seq), 0.442000(CSR_seq), 6.826000(ELL_seq)
-Times: 0.075000(CSR_cl), 0.115000(ELL_cl)
-       0.063000
-
-srun --reservation=fri gcc -O2 -fopenmp -lm -lOpenCL main.c mtx_sparse.c -o main
-
-
-time: 0.098734 repetitions: 100
-Number of errors: 144846
-
-size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
-Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
-Times: 1.389209(COO_seq), 0.649234(CSR_seq), 6.710061(ELL_seq)
-Times: 0.358190(CSR_cl), 0.325047(ELL_cl)
-
-threads_per_row = 8 work_group_size = 64  
-time: 0.161013 repetitions: 100
-threads_per_row = 8 work_group_size = 128 
-time: 0.138741 repetitions: 100
-threads_per_row = 8 work_group_size = 256 
-time: 0.139434 repetitions: 100
-threads_per_row = 8 work_group_size = 512 
-time: 0.141819 repetitions: 100
-threads_per_row = 8 work_group_size = 1024
-time: 0.148168 repetitions: 100
-threads_per_row = 16 work_group_size = 64 
-time: 0.193024 repetitions: 100
-threads_per_row = 16 work_group_size = 128
-time: 0.149216 repetitions: 100
-threads_per_row = 16 work_group_size = 256
-time: 0.147403 repetitions: 100
-threads_per_row = 16 work_group_size = 512
-time: 0.163763 repetitions: 100
-threads_per_row = 16 work_group_size = 1024
-time: 0.170920 repetitions: 100
-threads_per_row = 32 work_group_size = 64
-time: 0.282587 repetitions: 100
-threads_per_row = 32 work_group_size = 128
-time: 0.170251 repetitions: 100
-threads_per_row = 32 work_group_size = 256
-time: 0.174907 repetitions: 100
-threads_per_row = 32 work_group_size = 512
-time: 0.184007 repetitions: 100
-threads_per_row = 32 work_group_size = 1024
-time: 0.201341 repetitions: 100
-threads_per_row = 64 work_group_size = 64
-time: 0.453125 repetitions: 100
-threads_per_row = 64 work_group_size = 128
-time: 0.292062 repetitions: 100
-threads_per_row = 64 work_group_size = 256
-time: 0.301526 repetitions: 100
-threads_per_row = 64 work_group_size = 512
-time: 0.318690 repetitions: 100
-threads_per_row = 64 work_group_size = 1024
-time: 0.358805 repetitions: 100
-Number of errors: 147342
+Using:
+• REPEAT = 100
+• WORKGROUP_SIZE = 128
+• number of threads per row = 8
+┌──────────┬──────────┬──────────────────┬──────────┐
+│          │ csr cpu  │ (naive) csr gpu  │ csr gpu  │
+├──────────┼──────────┼──────────────────┼──────────┤
+│ time     │ 0.649    │ 0.358            │ 0.139    │
+│ speedup  │ 0.55x    │ 1.00x            │ 2.58x    │
+└──────────┴──────────┴──────────────────┴──────────┘
 */
 
 #define MAX_SOURCE_SIZE 16384
