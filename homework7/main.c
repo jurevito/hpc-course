@@ -8,6 +8,13 @@
 
 #include "mtx_sparse.h"
 
+/*
+size: 217918 x 217918, nonzero: 5926171, max elems in row: 180
+Errors: 0(CSR_seq), 0(ELL_seq), 0(CSR_cl), 0(ELL_cl)
+Times: 0.847000(COO_seq), 0.442000(CSR_seq), 6.826000(ELL_seq)
+Times: 0.075000(CSR_cl), 0.115000(ELL_cl)
+*/
+
 #define MAX_SOURCE_SIZE 16384
 #define WORKGROUP_SIZE 256
 #define REPEAT 100
@@ -57,7 +64,7 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_mem output_device = clCreateBuffer(context, CL_MEM_READ_WRITE, csr_matrix.num_cols * sizeof(float), NULL, &cl_status);
 
     // Divide work among the workgroups.
-    int threads_per_row = 64;
+    int threads_per_row = 16;
     size_t local_item_size = WORKGROUP_SIZE;
     int n_groups = (csr_matrix.num_rows*threads_per_row - 1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
@@ -165,7 +172,9 @@ int main(int argc, char** argv) {
     int n_errors = 0;
     for (int i = 0; i < csr_matrix.num_rows; i++) {
         if (fabs(output[i] - compare_output[i]) > 1e-4) {
-            printf("error at index = %d out of %d, %.3f\n", i, csr_matrix.num_nonzeros, fabs(output[i] - compare_output[i]));
+            if(n_errors < 10 && fabs(output[i] - compare_output[i]) > 0.07f) {
+                printf("error at index = %d out of %d, %.3f\n", i, csr_matrix.num_nonzeros, fabs(output[i] - compare_output[i]));
+            }
             n_errors++;
         }
     }
