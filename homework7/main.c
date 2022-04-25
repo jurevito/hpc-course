@@ -72,7 +72,7 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     // Divide work among the workgroups.
     int threads_per_row = 8;
     size_t local_item_size = WORKGROUP_SIZE;
-    int n_groups = (csr_matrix.num_rows*threads_per_row - 1) / local_item_size + 1;
+    int n_groups = (csr_matrix.num_rows * threads_per_row - 1) / local_item_size + 1;
     size_t global_item_size = n_groups * local_item_size;
 
     // Create kernel and add arguments.
@@ -82,7 +82,7 @@ int matrix_vector_multi(struct mtx_CSR csr_matrix, float* vector, float* output)
     cl_status |= clSetKernelArg(kernel, 2, sizeof(cl_mem), (void*)&data_device);
     cl_status |= clSetKernelArg(kernel, 3, sizeof(cl_mem), (void*)&vector_device);
     cl_status |= clSetKernelArg(kernel, 4, sizeof(cl_mem), (void*)&output_device);
-    cl_status |= clSetKernelArg(kernel, 5, local_item_size*sizeof(float), NULL);
+    cl_status |= clSetKernelArg(kernel, 5, local_item_size * sizeof(float), NULL);
     cl_status |= clSetKernelArg(kernel, 6, sizeof(cl_int), (void*)&(csr_matrix.num_rows));
     cl_status |= clSetKernelArg(kernel, 7, sizeof(cl_int), (void*)&threads_per_row);
 
