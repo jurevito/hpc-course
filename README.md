@@ -7,6 +7,7 @@ Homework assignments for High Performance Computing course.
 5. Image histogram using OpenCL.
 6. Histogram equalization using OpenCL.
 7. Matrix and vector multiplication using OpenCL.
+8. Monte Carlo Pi using OpenMPI.
 
 ### Code Linting
 - Download formater using `npm clang-format`.
