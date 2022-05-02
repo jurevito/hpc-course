@@ -22,3 +22,8 @@ Homework assignments for High Performance Computing course.
 ```bash
 cat output_{0..4..1}.txt > output.txt && rm output_{0..4..1}.txt
 ```
+
+### OpenMPI
+1. `module load OpenMPI`
+2. `export OMPI_MCA_pml=ucx`
+3. `srun --mpi=pmix -n<number of processes> --reservation=fri <exe>`
