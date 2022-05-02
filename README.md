@@ -26,4 +26,4 @@ cat output_{0..4..1}.txt > output.txt && rm output_{0..4..1}.txt
 ### OpenMPI
 1. `module load OpenMPI`
 2. `export OMPI_MCA_pml=ucx`
-3. `srun --mpi=pmix -n<number of processes> --reservation=fri <exe>`
+3. `srun --mpi=pmix --tasks=<number of processes> --nodes=<number of nodes> --reservation=fri <exe>`
