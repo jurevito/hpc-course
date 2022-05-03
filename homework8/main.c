@@ -50,7 +50,7 @@ double monte_carlo_pi_serial(int n_samples, int seed) {
     return ((double)count / n_samples) * 4.0;
 }
 
-double monte_carlo_pi_parallel(int argc, char* argv[], int n_samples, int seed) {
+double monte_carlo_pi_parallel(int n_samples, int seed) {
 
     int id, n_processes;
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
@@ -90,7 +90,7 @@ double monte_carlo_pi_parallel(int argc, char* argv[], int n_samples, int seed) 
     return pi;
 }
 
-double monte_carlo_pi_reduce(int argc, char* argv[], int n_samples, int seed) {
+double monte_carlo_pi_reduce(int n_samples, int seed) {
 
     int id, n_processes;
     MPI_Comm_rank(MPI_COMM_WORLD, &id);
@@ -140,14 +140,14 @@ int main(int argc, char* argv[]) {
     printf("Serial:   pi = %.9lf time = %.3lf correct = %d\n", pi, elapsed_time, is_correct);
 
     start_time = omp_get_wtime();
-    pi = monte_carlo_pi_parallel(argc, argv, SAMPLES, SEED);
+    pi = monte_carlo_pi_parallel(SAMPLES, SEED);
     elapsed_time = omp_get_wtime() - start_time;
 
     is_correct = (fabs(PI - pi) < 1e-3);
     printf("Parallel: pi = %.9lf time = %.3lf correct = %d\n", pi, elapsed_time, is_correct);
 
     start_time = omp_get_wtime();
-    pi = monte_carlo_pi_reduce(argc, argv, SAMPLES, SEED);
+    pi = monte_carlo_pi_reduce(SAMPLES, SEED);
     elapsed_time = omp_get_wtime() - start_time;
 
     is_correct = (fabs(PI - pi) < 1e-3);
