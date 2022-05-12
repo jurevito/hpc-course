@@ -8,6 +8,7 @@ Homework assignments for High Performance Computing course.
 6. Histogram equalization using OpenCL.
 7. Matrix and vector multiplication using OpenCL.
 8. Monte Carlo Pi using OpenMPI.
+9. Finding intruder using OpenMPI.
 
 ### Code Linting
 - Download formater using `npm clang-format`.
