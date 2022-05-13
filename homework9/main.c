@@ -13,44 +13,6 @@
 module load OpenMPI
 export OMPI_MCA_pml=ucx
 
-Intruder in the BEGINNING.
-┌─────────────┬───────────┬─────────┬──────────┐
-│ n. threads  │ n. nodes  │ serial  │ openmpi  │
-├─────────────┼───────────┼─────────┼──────────┤
-│ 1           │ 1         │ 0.000   │ 0.043    │
-│ 4           │ 1         │ 0.000   │ 0.060    │
-│ 4           │ 2         │ 0.000   │ 0.061    │
-│ 8           │ 1         │ 0.000   │ 0.071    │
-│ 8           │ 2         │ 0.000   │ 0.072    │
-│ 32          │ 1         │ 0.000   │ 0.103    │
-│ 32          │ 2         │ 0.000   │ 0.356    │
-└─────────────┴───────────┴─────────┴──────────┘
-
-Intruder in the MIDDLE.
-┌─────────────┬───────────┬─────────┬──────────┐
-│ n. threads  │ n. nodes  │ serial  │ openmpi  │
-├─────────────┼───────────┼─────────┼──────────┤
-│ 1           │ 1         │ 0.059   │ 0.172    │
-│ 4           │ 1         │ 0.073   │ 0.075    │
-│ 4           │ 2         │ 0.074   │ 0.131    │
-│ 8           │ 1         │ 0.087   │ 0.068    │
-│ 8           │ 2         │ 0.066   │ 0.126    │
-│ 32          │ 1         │ 0.086   │ 0.103    │
-│ 32          │ 2         │ 0.297   │ 0.082    │
-└─────────────┴───────────┴─────────┴──────────┘
-
-Intruder in the END.
-┌─────────────┬───────────┬─────────┬──────────┐
-│ n. threads  │ n. nodes  │ serial  │ openmpi  │
-├─────────────┼───────────┼─────────┼──────────┤
-│ 1           │ 1         │ 0.118   │ 0.300    │
-│ 4           │ 1         │ 0.116   │ 0.124    │
-│ 4           │ 2         │ 0.117   │ 0.180    │
-│ 8           │ 1         │ 0.156   │ 0.105    │
-│ 8           │ 2         │ 0.117   │ 0.279    │
-│ 32          │ 1         │ 0.163   │ 0.112    │
-│ 32          │ 2         │ 0.159   │ 0.640    │
-└─────────────┴───────────┴─────────┴──────────┘
 
 */
 
@@ -88,50 +50,46 @@ int find_intruder(char* field, int size) {
         sum += send_counts[i];
     }
 
-    int max_counts = send_counts[0];
-    char* recv_buf = (char*)malloc(max_counts * sizeof(char));
-    MPI_Scatterv(field, send_counts, displacements, MPI_CHAR, recv_buf, max_counts, MPI_CHAR, 0, MPI_COMM_WORLD);
+    char* recv_buffer = (char*)malloc(send_counts[id] * sizeof(char));
+    MPI_Scatterv(field, send_counts, displacements, MPI_CHAR, recv_buffer, send_counts[id], MPI_CHAR, 0, MPI_COMM_WORLD);
 
-    int flag, intruder_index, n_swept;
-    MPI_Request request;
+    int intruder_found, intruder_index, n_swept;
+    MPI_Request recv_request, send_request;
 
-    MPI_Irecv(&intruder_index, 1, MPI_INT, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, &request);
+    MPI_Irecv(&intruder_index, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &recv_request);
 
     for (int i = 0; i < send_counts[id]; i++) {
-        
         // Process found the intruder.
-        if (recv_buf[i] == 2) {
+        if (recv_buffer[i] == 2) {
             intruder_index = displacements[id] + i;
             n_swept = i;
 
             for (int j = 0; j < n_processes; j++) {
-                MPI_Isend(&intruder_index, 1, MPI_INT, j, 0, MPI_COMM_WORLD, &request);
+                MPI_Isend(&intruder_index, 1, MPI_INT, j, 0, MPI_COMM_WORLD, &send_request);
             }
             break;
         }
 
         // Checking if any other process found the intruder.
         if (i % 1000 == 0) {
-            MPI_Test(&request, &flag, MPI_STATUS_IGNORE);
+            MPI_Test(&recv_request, &intruder_found, MPI_STATUS_IGNORE);
 
-            if (flag) {
+            if (intruder_found) {
                 n_swept = i;
                 break;
             }
         }
     }
 
-    MPI_Wait(&request, MPI_STATUS_IGNORE);
+    MPI_Wait(&recv_request, MPI_STATUS_IGNORE);
+    
+    int* swept_buffer = (int*)malloc(n_processes * sizeof(int));
+    MPI_Gather(&n_swept, 1, MPI_INT, swept_buffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
     if (id == 0) {
-        int* swept_buffer = (int*)malloc(n_processes * sizeof(int));
-        MPI_Gather(&n_swept, 1, MPI_INT, swept_buffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
         for (int i = 0; i < n_processes; i++) {
             printf("(%d) swept %d fields.\n", i, swept_buffer[i]);
         }
-    } else {
-        MPI_Gather(&n_swept, 1, MPI_INT, NULL, 0, MPI_INT, 0, MPI_COMM_WORLD);
     }
 
     return intruder_index;
@@ -157,8 +115,8 @@ int main(int argc, char* argv[]) {
 
         int section_size = FIELD_SIZE / n_processes;
         //field[0] = 2;            // Beginning
-        // field[(n_processes/2)*section_size + section_size/2] = 2; // Middle
-        field[FIELD_SIZE - 1] = 2; // End
+        field[(n_processes/2)*section_size + section_size/2] = 2; // Middle
+        //field[FIELD_SIZE - 1] = 2; // End
     }
 
     double start_time, elapsed_time;
