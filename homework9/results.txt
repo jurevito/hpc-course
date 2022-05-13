@@ -1,0 +1,350 @@
+!==== START ====!
+
+Number of Threads = 1 Number of Nodes = 1
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+OpenMPI: index = 0 time = 0.042
+=========================
+Number of Threads = 4 Number of Nodes = 1
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 12160000 fields.
+(2) swept 6045000 fields.
+(3) swept 1000 fields.
+OpenMPI: index = 0 time = 0.059
+Number of Threads = 4 Number of Nodes = 2
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 12936000 fields.
+(2) swept 6921000 fields.
+(3) swept 5000 fields.
+OpenMPI: index = 0 time = 0.061
+=========================
+Number of Threads = 8 Number of Nodes = 1
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 10878000 fields.
+(4) swept 8874000 fields.
+(5) swept 5734000 fields.
+(6) swept 2904000 fields.
+(7) swept 6000 fields.
+OpenMPI: index = 0 time = 0.068
+Number of Threads = 8 Number of Nodes = 2
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 21000 fields.
+OpenMPI: index = 0 time = 0.234
+=========================
+Number of Threads = 32 Number of Nodes = 1
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 0 fields.
+(16) swept 0 fields.
+(17) swept 0 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 3086000 fields.
+(29) swept 2225000 fields.
+(30) swept 970000 fields.
+(31) swept 8000 fields.
+OpenMPI: index = 0 time = 0.106
+Number of Threads = 32 Number of Nodes = 2
+Serial: index = 0 time = 0.000
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 0 fields.
+(16) swept 0 fields.
+(17) swept 0 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 0 fields.
+(29) swept 0 fields.
+(30) swept 0 fields.
+(31) swept 33000 fields.
+OpenMPI: index = 0 time = 0.459
+=========================
+
+
+!==== MIDDLE ====!
+
+Number of Threads = 1 Number of Nodes = 1
+Serial: index = 50000000 time = 0.060
+(0) swept 50000000 fields.
+OpenMPI: index = 50000000 time = 0.170
+=========================
+Number of Threads = 4 Number of Nodes = 1
+Serial: index = 62500000 time = 0.073
+(0) swept 6420000 fields.
+(1) swept 18324000 fields.
+(2) swept 12500000 fields.
+(3) swept 6415000 fields.
+OpenMPI: index = 62500000 time = 0.076
+Number of Threads = 4 Number of Nodes = 2
+Serial: index = 62500000 time = 0.074
+(0) swept 5512000 fields.
+(1) swept 18867000 fields.
+(2) swept 12500000 fields.
+(3) swept 5880000 fields.
+OpenMPI: index = 62500000 time = 0.078
+=========================
+Number of Threads = 8 Number of Nodes = 1
+Serial: index = 56250000 time = 0.088
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 11424000 fields.
+(3) swept 8619000 fields.
+(4) swept 6250000 fields.
+(5) swept 3202000 fields.
+(6) swept 375000 fields.
+(7) swept 0 fields.
+OpenMPI: index = 56250000 time = 0.068
+Number of Threads = 8 Number of Nodes = 2
+Serial: index = 56250000 time = 0.066
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 6250000 fields.
+(5) swept 2535000 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+OpenMPI: index = 56250000 time = 0.116
+=========================
+Number of Threads = 32 Number of Nodes = 1
+Serial: index = 51562500 time = 0.085
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 2765000 fields.
+(16) swept 1562500 fields.
+(17) swept 392000 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 0 fields.
+(29) swept 0 fields.
+(30) swept 0 fields.
+(31) swept 0 fields.
+OpenMPI: index = 51562500 time = 0.105
+Number of Threads = 32 Number of Nodes = 2
+Serial: index = 51562500 time = 0.082
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 0 fields.
+(16) swept 1562500 fields.
+(17) swept 0 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 0 fields.
+(29) swept 0 fields.
+(30) swept 0 fields.
+(31) swept 0 fields.
+OpenMPI: index = 51562500 time = 0.520
+=========================
+
+!===== END =====!
+Number of Threads = 1 Number of Nodes = 1
+Serial: index = 99999999 time = 0.118
+(0) swept 99999999 fields.
+OpenMPI: index = 99999999 time = 0.299
+=========================
+Number of Threads = 4 Number of Nodes = 1
+Serial: index = 99999999 time = 0.118
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 24999999 fields.
+OpenMPI: index = 99999999 time = 0.125
+Number of Threads = 4 Number of Nodes = 2
+Serial: index = 99999999 time = 0.117
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 24999999 fields.
+OpenMPI: index = 99999999 time = 0.182
+=========================
+Number of Threads = 8 Number of Nodes = 1
+Serial: index = 99999999 time = 0.148
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 12499999 fields.
+OpenMPI: index = 99999999 time = 0.101
+Number of Threads = 8 Number of Nodes = 2
+Serial: index = 99999999 time = 0.118
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 12499999 fields.
+OpenMPI: index = 99999999 time = 0.159
+=========================
+Number of Threads = 32 Number of Nodes = 1
+Serial: index = 99999999 time = 0.163
+(0) swept 3075000 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 0 fields.
+(16) swept 0 fields.
+(17) swept 0 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 0 fields.
+(29) swept 0 fields.
+(30) swept 0 fields.
+(31) swept 3124999 fields.
+OpenMPI: index = 99999999 time = 0.119
+Number of Threads = 32 Number of Nodes = 2
+Serial: index = 99999999 time = 0.158
+(0) swept 0 fields.
+(1) swept 0 fields.
+(2) swept 0 fields.
+(3) swept 0 fields.
+(4) swept 0 fields.
+(5) swept 0 fields.
+(6) swept 0 fields.
+(7) swept 0 fields.
+(8) swept 0 fields.
+(9) swept 0 fields.
+(10) swept 0 fields.
+(11) swept 0 fields.
+(12) swept 0 fields.
+(13) swept 0 fields.
+(14) swept 0 fields.
+(15) swept 0 fields.
+(16) swept 0 fields.
+(17) swept 0 fields.
+(18) swept 0 fields.
+(19) swept 0 fields.
+(20) swept 0 fields.
+(21) swept 0 fields.
+(22) swept 0 fields.
+(23) swept 0 fields.
+(24) swept 0 fields.
+(25) swept 0 fields.
+(26) swept 0 fields.
+(27) swept 0 fields.
+(28) swept 0 fields.
+(29) swept 0 fields.
+(30) swept 0 fields.
+(31) swept 3124999 fields.
+OpenMPI: index = 99999999 time = 0.418
+=========================

@@ -13,7 +13,20 @@
 module load OpenMPI
 export OMPI_MCA_pml=ucx
 
+┌─────────────┬───────────┬────────┬─────────┬────────┐
+│ n. threads  │ n. nodes  │ start  │ middle  │ end    │
+├─────────────┼───────────┼────────┼─────────┼────────┤
+│ 1           │ 1         │ 0.042  │ 0.170   │ 0.299  │
+│ 4           │ 1         │ 0.059  │ 0.076   │ 0.125  │
+│ 8           │ 1         │ 0.068  │ 0.068   │ 0.101  │
+│ 32          │ 1         │ 0.106  │ 0.105   │ 0.119  │
+│ 4           │ 2         │ 0.061  │ 0.078   │ 0.182  │
+│ 8           │ 2         │ 0.234  │ 0.116   │ 0.159  │
+│ 32          │ 2         │ 0.459  │ 0.520   │ 0.418  │
+└─────────────┴───────────┴────────┴─────────┴────────┘
 
+Serial (start): 0.000
+Serial (end): 0.118
 */
 
 int find_intruder_serial(char* field, int size) {
@@ -82,7 +95,7 @@ int find_intruder(char* field, int size) {
     }
 
     MPI_Wait(&recv_request, MPI_STATUS_IGNORE);
-    
+
     int* swept_buffer = (int*)malloc(n_processes * sizeof(int));
     MPI_Gather(&n_swept, 1, MPI_INT, swept_buffer, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -115,8 +128,8 @@ int main(int argc, char* argv[]) {
 
         int section_size = FIELD_SIZE / n_processes;
         //field[0] = 2;            // Beginning
-        field[(n_processes/2)*section_size + section_size/2] = 2; // Middle
-        //field[FIELD_SIZE - 1] = 2; // End
+        //field[(n_processes / 2) * section_size + section_size / 2] = 2; // Middle
+        field[FIELD_SIZE - 1] = 2; // End
     }
 
     double start_time, elapsed_time;
